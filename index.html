@@ -7,99 +7,66 @@
   <meta name="description" content="Single button that becomes a reCAPTCHA-style box, then shows a loading fill and redirects." />
   <style>
     :root{
-      --text:#e5e7eb;             /* better on dark hosts */
-      --accent:#60a5fa;
-      --accent-hover:#93c5fd;
-      --rc-border:#dadce0;        /* closer to Google's gray */
-      --rc-shadow:0 2px 6px rgba(0,0,0,.18);
-      --box:#cfd8dc;
-      --check:#10b981;
-      --bar:rgba(96,165,250,.35);
+      --text:#e5e7eb; --accent:#60a5fa; --accent-hover:#93c5fd;
+      --rc-border:#dadce0; --rc-shadow:0 2px 6px rgba(0,0,0,.18);
+      --box:#cfd8dc; --check:#10b981; --bar:rgba(96,165,250,.35);
       --focus:rgba(96,165,250,.35);
     }
-    html,body{height:100%}
-    body{
-      margin:0; background:transparent; color:var(--text);
-      -webkit-tap-highlight-color: transparent;
-      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      display:grid; place-items:center;
-    }
-    .wrap{ width:min(360px,96vw); }
+    /* ✅ No body-height/grid centering here (prevents unwanted scrollbars) */
+    body{ margin:0; background:transparent; color:var(--text);
+          font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; }
 
-    /* Single button */
+    /* Host only centers the widget without affecting page height */
+    .host{ display:flex; justify-content:center; }
+    .wrap{ width:min(360px,96vw); margin:0.5rem 0; }
+
+    /* Button */
     #action{
       position:relative; width:100%;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
       padding:.95em 1.25em; border-radius:999px;
-      background:transparent; color:var(--accent);
-      border:2px solid currentColor;
-      font-weight:800; font-size:1.05rem; line-height:1.2;
-      cursor:pointer; user-select:none; overflow:hidden;
+      background:transparent; color:var(--accent); border:2px solid currentColor;
+      font-weight:800; font-size:1.05rem; line-height:1.2; cursor:pointer; user-select:none; overflow:hidden;
       transition: color .18s, border-color .18s, border-radius .22s, padding .22s, box-shadow .18s;
     }
     #action:hover{ color:var(--accent-hover); border-color:var(--accent-hover) }
     #action:disabled{ opacity:.9; cursor:not-allowed }
     #action:focus{ outline:none }
-    /* Soft focus ring (disable if you want none) */
-    #action:focus-visible{ box-shadow:0 0 0 3px var(--focus) }
-    /* #action:focus-visible{ box-shadow:none }  /* ← uncomment to remove ring entirely */
-
+    #action:focus-visible{ box-shadow:0 0 0 3px var(--focus) } /* or comment to remove ring */
     #action .label{ position:relative; z-index:2; white-space:nowrap }
 
     /* Progress fill */
-    #action .bar{
-      position:absolute; left:0; top:0; height:100%; width:0;
-      background:var(--bar); z-index:1; pointer-events:none; opacity:1;
-      will-change: width; transform: translateZ(0);
-    }
+    #action .bar{ position:absolute; left:0; top:0; height:100%; width:0; background:var(--bar); z-index:1; pointer-events:none; }
     @keyframes fill3s{ from{width:0%} to{width:100%} }
 
-    /* reCAPTCHA-like card */
+    /* reCAPTCHA card */
     #action .recaptcha{ display:none; width:100% }
     #action.captcha{ border:0; padding:0; border-radius:10px }
     #action.captcha .recaptcha{
-      display:block; background:#fff; border:1px solid var(--rc-border); border-radius:10px;
-      box-shadow:var(--rc-shadow);
+      display:block; background:#fff; border:1px solid var(--rc-border); border-radius:10px; box-shadow:var(--rc-shadow);
     }
-    .rc-row{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 14px 8px 12px;
-    }
+    .rc-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px 8px 12px }
     .rc-left{ display:flex; align-items:center; gap:12px }
-    .rc-text{ font-size:16px; font-weight:600; color:#111 } /* less heavy than 700 */
+    .rc-text{ font-size:16px; font-weight:600; color:#111 }
 
-    .rc-box{
-      width:22px; height:22px; border:2px solid var(--box); border-radius:4px;
-      background:#fff; display:grid; place-items:center; cursor:pointer; outline:none;
-    }
-    .rc-box .tick{
-      width:12px; height:12px; border-radius:3px; background:transparent;
-      transform:scale(0); transition:transform .13s ease-out, background .13s ease-out;
-    }
+    .rc-box{ width:22px; height:22px; border:2px solid var(--box); border-radius:4px; background:#fff;
+             display:grid; place-items:center; cursor:pointer; outline:none; }
+    .rc-box .tick{ width:12px; height:12px; border-radius:3px; background:transparent; transform:scale(0); transition:transform .13s, background .13s; }
     .rc-box.checked .tick{ background:var(--check); transform:scale(1) }
 
     .rc-right{ display:flex; align-items:center; gap:6px; color:#5f6368 }
     .rc-logo{ width:26px; height:26px }
-    .rc-brand{ font-size:12px; font-weight:700 } /* matches screenshot emphasis */
+    .rc-brand{ font-size:12px; font-weight:700 }
 
-    .rc-terms{
-      display:block; text-align:right; padding:0 12px 10px;
-      color:#9aa0a6; font-size:12px; letter-spacing:.01em;
-    }
+    .rc-terms{ text-align:right; padding:0 12px 10px; color:#9aa0a6; font-size:12px }
     .rc-terms a{ color:inherit; text-decoration:none; margin:0 4px }
     .rc-terms a:hover{ text-decoration:underline }
 
-    /* State visibility */
-    #action.idle .label{ display:block }
-    #action.idle .recaptcha{ display:none }
+    /* States */
+    #action.idle .label{ display:block }  #action.idle .recaptcha{ display:none }
     #action.captcha .label{ display:none }
-
-    #action.loading{
-      border-color:var(--accent); color:var(--accent);
-      border-radius:999px; padding:.95em 1.25em;
-    }
-    #action.loading .label{ display:block }
-    #action.loading .recaptcha{ display:none }
+    #action.loading{ border-color:var(--accent); color:var(--accent); border-radius:999px; padding:.95em 1.25em }
+    #action.loading .label{ display:block }  #action.loading .recaptcha{ display:none }
     #action.loading .bar{ animation:fill3s 3s linear forwards }
 
     .hint{ margin-top:.6rem; text-align:center; color:#9aa3b2; font-size:.95rem }
@@ -109,35 +76,37 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <button id="action" class="idle" type="button" aria-live="polite">
-      <span class="label">Activate Now</span>
+  <!-- Put this host div wherever you want the button to appear in your page -->
+  <div class="host">
+    <div class="wrap">
+      <button id="action" class="idle" type="button" aria-live="polite">
+        <span class="label">Activate Now</span>
 
-      <span class="recaptcha" aria-hidden="true">
-        <span class="rc-row">
-          <span class="rc-left">
-            <span class="rc-box" id="rcBox" role="checkbox" aria-checked="false" tabindex="0">
-              <span class="tick"></span>
+        <span class="recaptcha" aria-hidden="true">
+          <span class="rc-row">
+            <span class="rc-left">
+              <span class="rc-box" id="rcBox" role="checkbox" aria-checked="false" tabindex="0">
+                <span class="tick"></span>
+              </span>
+              <span class="rc-text">I'm not a robot</span>
             </span>
-            <span class="rc-text">I'm not a robot</span>
+            <span class="rc-right">
+              <img class="rc-logo" src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" />
+              <span class="rc-brand">reCAPTCHA</span>
+            </span>
           </span>
-          <span class="rc-right">
-            <img class="rc-logo" src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" />
-            <span class="rc-brand">reCAPTCHA</span>
-          </span>
+          <span class="rc-terms"><a href="#">Privacy</a> · <a href="#">Terms</a></span>
         </span>
-        <span class="rc-terms"><a href="#">Privacy</a> · <a href="#">Terms</a></span>
-      </span>
 
-      <span class="bar" aria-hidden="true"></span>
-    </button>
+        <span class="bar" aria-hidden="true"></span>
+      </button>
 
-    <div class="hint" id="hint" aria-hidden="true"></div>
-    <div class="continue" id="continue"><a id="continueLink" href="#" target="_blank" rel="noopener">Continue</a></div>
+      <div class="hint" id="hint" aria-hidden="true"></div>
+      <div class="continue" id="continue"><a id="continueLink" href="#" target="_blank" rel="noopener">Continue</a></div>
+    </div>
   </div>
 
   <script>
-    // Your redirect URL
     const DEST_URL = "https://6us.org/?27qX8fFg3NxUDhCju3K2HCDm2h8FXsZiAbTI5VXJkyqV3oXEqhbpW";
 
     const btn  = document.getElementById('action');
@@ -168,7 +137,6 @@
       rcBox.setAttribute('aria-checked','true');
       hint.textContent = "Please wait ~3 seconds…";
 
-      // Redirect AFTER the animation finishes
       bar.addEventListener('animationend', () => {
         const w = window.open(DEST_URL, "_blank", "noopener");
         if (!w) {
@@ -179,29 +147,10 @@
       }, { once:true });
     }
 
-    // First click → show captcha
-    btn.addEventListener('click', () => {
-      if (state === 'idle') toCaptcha();
-    });
-
-    // Only the small checkbox starts loading
-    rcBox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (state === 'captcha') toLoading();
-    });
-
-    // Keyboard support for checkbox
-    rcBox.addEventListener('keydown', (e) => {
-      if (state === 'captcha' && (e.key === ' ' || e.key === 'Enter')) {
-        e.preventDefault();
-        toLoading();
-      }
-    });
-
-    // Prevent Enter/Space on whole button in captcha state
-    btn.addEventListener('keydown', (e) => {
-      if ((e.key === ' ' || e.key === 'Enter') && state === 'captcha') e.preventDefault();
-    });
+    btn.addEventListener('click', () => { if (state === 'idle') toCaptcha(); });
+    rcBox.addEventListener('click', (e) => { e.stopPropagation(); if (state === 'captcha') toLoading(); });
+    rcBox.addEventListener('keydown', (e) => { if (state === 'captcha' && (e.key===' '||e.key==='Enter')) { e.preventDefault(); toLoading(); } });
+    btn.addEventListener('keydown', (e) => { if ((e.key===' '||e.key==='Enter') && state==='captcha') e.preventDefault(); });
   </script>
 </body>
 </html>
