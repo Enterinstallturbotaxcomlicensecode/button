@@ -12,15 +12,11 @@
       --box:#cfd8dc; --check:#10b981; --bar:rgba(96,165,250,.35);
       --focus:rgba(96,165,250,.35);
     }
-    /* ✅ No body-height/grid centering here (prevents unwanted scrollbars) */
     body{ margin:0; background:transparent; color:var(--text);
           font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; }
-
-    /* Host only centers the widget without affecting page height */
     .host{ display:flex; justify-content:center; }
     .wrap{ width:min(360px,96vw); margin:0.5rem 0; }
 
-    /* Button */
     #action{
       position:relative; width:100%;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
@@ -31,15 +27,12 @@
     }
     #action:hover{ color:var(--accent-hover); border-color:var(--accent-hover) }
     #action:disabled{ opacity:.9; cursor:not-allowed }
-    #action:focus{ outline:none }
-    #action:focus-visible{ box-shadow:0 0 0 3px var(--focus) } /* or comment to remove ring */
+    #action:focus{ outline:none }  #action:focus-visible{ box-shadow:0 0 0 3px var(--focus) }
     #action .label{ position:relative; z-index:2; white-space:nowrap }
 
-    /* Progress fill */
     #action .bar{ position:absolute; left:0; top:0; height:100%; width:0; background:var(--bar); z-index:1; pointer-events:none; }
     @keyframes fill3s{ from{width:0%} to{width:100%} }
 
-    /* reCAPTCHA card */
     #action .recaptcha{ display:none; width:100% }
     #action.captcha{ border:0; padding:0; border-radius:10px }
     #action.captcha .recaptcha{
@@ -62,7 +55,6 @@
     .rc-terms a{ color:inherit; text-decoration:none; margin:0 4px }
     .rc-terms a:hover{ text-decoration:underline }
 
-    /* States */
     #action.idle .label{ display:block }  #action.idle .recaptcha{ display:none }
     #action.captcha .label{ display:none }
     #action.loading{ border-color:var(--accent); color:var(--accent); border-radius:999px; padding:.95em 1.25em }
@@ -76,7 +68,6 @@
   </style>
 </head>
 <body>
-  <!-- Put this host div wherever you want the button to appear in your page -->
   <div class="host">
     <div class="wrap">
       <button id="action" class="idle" type="button" aria-live="polite">
@@ -118,12 +109,24 @@
 
     let state = 'idle';
 
+    // 🔒 helpers to lock/unlock page scroll
+    function lockScroll(){
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+    }
+    function unlockScroll(){
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    }
+
     function toCaptcha(){
       state = 'captcha';
       btn.classList.remove('idle','loading');
       btn.classList.add('captcha');
       hint.textContent = "Click the square checkbox to verify.";
       hint.removeAttribute('aria-hidden');
+
+      lockScroll();          // ← lock scroll when captcha is shown
       rcBox.focus();
     }
 
@@ -137,7 +140,9 @@
       rcBox.setAttribute('aria-checked','true');
       hint.textContent = "Please wait ~3 seconds…";
 
+      // Redirect AFTER the progress finishes
       bar.addEventListener('animationend', () => {
+        unlockScroll();      // ← unlock when verification completes
         const w = window.open(DEST_URL, "_blank", "noopener");
         if (!w) {
           continueLink.href = DEST_URL;
@@ -148,8 +153,15 @@
     }
 
     btn.addEventListener('click', () => { if (state === 'idle') toCaptcha(); });
+
+    // Only the checkbox starts loading
     rcBox.addEventListener('click', (e) => { e.stopPropagation(); if (state === 'captcha') toLoading(); });
     rcBox.addEventListener('keydown', (e) => { if (state === 'captcha' && (e.key===' '||e.key==='Enter')) { e.preventDefault(); toLoading(); } });
+
+    // If popup blocked and user clicks "Continue", also ensure scroll is free
+    continueLink.addEventListener('click', unlockScroll);
+
+    // Prevent Enter/Space on whole button while in captcha state
     btn.addEventListener('keydown', (e) => { if ((e.key===' '||e.key==='Enter') && state==='captcha') e.preventDefault(); });
   </script>
 </body>
